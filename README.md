@@ -5,7 +5,7 @@ USAGE
 -------------
 ```
 Step 1: Press Button to start recording voice
-Step 2: Speak into microphe 
+Step 2: Speak into microphone
 Step 3: Press button to stop recording 
 Step 4: Look at LCD screen to see the text that the program heard
 Step 5: Repeat steps
