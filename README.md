@@ -1,5 +1,5 @@
 # PiSpeechRecognition
-This project allows a person to speak into a microphone and see the text equvilant on a LCD screen. This is meant to be an exploration of machine learning and speech processing, and it will have a simple setup on a Raspberry Pi.
+This project is small project written in python using the Tensorflow framework. It is meant to be an exploration of machine learning and speech processing, and it will have a simple setup on a Raspberry Pi. The goal of this project is to allow a person to speak into a microphone and see the text equvilant on a LCD screen. 
 
 USAGE
 -------------
