@@ -12,4 +12,4 @@ Step 5: Repeat steps
 ```
 
 
-DATASET: https://aiyprojects.withgoogle.com/open_speech_recording
+DATASET DOWNLOAD LINK: http://download.tensorflow.org/data/speech_commands_v0.01.tar.gz
