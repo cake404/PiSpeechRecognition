@@ -1,20 +1,24 @@
-import RPi.GPIO as GPIO
+import gpiozero as gpio
 import time
-from threading import Thread, Event
+from threading import Thread
 from I2C_LCD_DRIVER import lcd
-
+from Queue import Queue
 def main():
 
-    button = Event()
-    flags = [False]
-    # Thread to check the button
-    button_thread = Thread(target=check_button_press, args=(button, flags))
-    button_thread.start()
+    # GPIO set up
+    button = gpio.Button(6)
+
+    queue = Queue(1)
 
     # Set up of display
     addr = 0x27
     port = 1
     screen = lcd(addr, port)
+    screen_thread = Thread(target=print_to_screen,args=(screen,queue))
+    screen_thread.start()
+    queue.put(['Welcome!'])
+    time.sleep(1)
+    queue.put(['Press the button'])
 
     # FSM for voice recording
     wait_for_button = 0
@@ -24,34 +28,46 @@ def main():
     try:
         while True:
             if state == wait_for_button:
-                print('waiting')
-                button.wait()
-                print('done waiting')
-                time.sleep(1)
-                button.clear()
-                pass
+                if button.wait_for_press(timeout=1):
+                    button.wait_for_release()
+                    queue.put(['Listening.', 'Listening..', 'Listening...'])
+                    state = listen_for_voice
             elif state == listen_for_voice:
-                pass
+                if button.wait_for_press(timeout=1):
+                    button.wait_for_release()
+                    queue.put(['You said:', 'TEST WORD'])
+                    state = show_text
             elif state == show_text:
-                pass
+                if button.wait_for_press(timeout=1):
+                    button.wait_for_release()
+                    queue.put(['Press the button'])
+                    state = wait_for_button
     except KeyboardInterrupt:
-        flags[0] = True
-        button_thread.join()
-        GPIO.cleanup()
-        print('\n')
+        queue.put(['end'])
+        screen_thread.join()
+        print('')
 
-def check_button_press(button, flags):
-    # Set up of button
-    GPIO.setmode(GPIO.BCM)
-    GPIO.setup(6, GPIO.IN)
-    # check button
-    input = GPIO.input(6)
-    while True and not flags[0]:
-        input = GPIO.input(6)
-        print(input)
-        if not input:
-            button.set()
-            time.sleep(0.1)
+def print_to_screen(screen, queue):
+    while True:
+        input = queue.get()
+        # if input is 'end', break from look
+        if input[0] == 'end':
+            break
+
+        # If only one string, display then pass
+        if len(input) == 1:
+            screen.lcd_display_string(input[0].ljust(16))
+            pass
+
+        # If multiple strings, loop them until queue is not empty
+        i = 0
+        while queue.empty():
+            screen.lcd_display_string(input[i].ljust(16))
+            i = (i + 1) % len(input)
+            time.sleep(1)
+
+    # Clear screen before retunring
+    screen.lcd_clear()
 
 if __name__ == "__main__":
     main()
